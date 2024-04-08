@@ -6,6 +6,7 @@ authors = ["Laurie Voss <github@seldo.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
+sqlite = "3.45.2"
 python = ">=3.11,<3.13"
 llama-index = "^0.9.19"
 python-dotenv = "^1.0.0"
@@ -14,7 +15,7 @@ flask = "^3.0.0"
 qdrant-client = "^1.7.0"
 gunicorn = "^21.2.0"
 chromadb = "0.4.*"
-sqlite = "3.35.0"
+
 
 [build-system]
 requires = ["poetry-core"]
