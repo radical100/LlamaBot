@@ -73,7 +73,7 @@ from pymongo import MongoClient
 from llama_index.vector_stores import MongoDBAtlasVectorSearch
 
 MONGO_URI = os.environ.get("MONGO_URI")
-DB_NAME = os.environ.get("DB_NAME")
+DB_NAME = 'radical-dev'
 
 
 mongo_client = MongoClient(MONGO_URI, uuidRepresentation="standard")
