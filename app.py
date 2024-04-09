@@ -71,8 +71,9 @@ service_context = ServiceContext.from_defaults(
 
 from pymongo import MongoClient
 
-os.environ.get("MONGO_URI")
-os.environ.get("DB_NAME")
+MONGO_URI = os.environ.get("MONGO_URI")
+DB_NAME = os.environ.get("DB_NAME")
+
 
 mongo_client = MongoClient(MONGO_URI, uuidRepresentation="standard")
 
