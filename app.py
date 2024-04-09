@@ -160,12 +160,6 @@ query_engine = index.as_query_engine(response_synthesizer=response_synthesizer)
 
 
 
-
-import IPython.display as ipd
-
-
-
-
 @app.message()
 def reply(message, say):
     # the slack message object is a complicated nested object
