@@ -7,14 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-chromadb = "0.3.29"
-llama-index = "^0.9.19"
-python-dotenv = "^1.0.0"
+chromadb = "0.4.24"
+llama-index = "0.9.48"
+python-dotenv = "1.0.1"
 slack-bolt = "1.18.1"
-flask = "^3.0.0"
-qdrant-client = "^1.7.0"
-gunicorn = "^21.2.0"
-
+flask = "3.0.3"
 
 
 [build-system]
