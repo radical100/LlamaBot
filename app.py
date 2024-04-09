@@ -69,12 +69,15 @@ service_context = ServiceContext.from_defaults(
 )
 
 
-
-
 import chromadb
-from llama_index.vector_stores import ChromaVectorStore
+from chromadb.config import Settings
 
-chroma_client = chromadb.PersistentClient(path="./assets/vectorestores/chroma")
+
+chroma_client = chromadb.Client(Settings(
+    chroma_db_impl="duckdb+parquet",
+    persist_directory="./assets/vectorestores/chroma" # Optional, defaults to .chromadb/ in the current directory
+))
+
 collection_name = "host_index"
 chroma_collection = chroma_client.get_collection(collection_name)
 vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
