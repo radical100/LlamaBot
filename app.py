@@ -69,19 +69,19 @@ service_context = ServiceContext.from_defaults(
 )
 
 
-import chromadb
-from chromadb.config import Settings
+from pymongo import MongoClient
 
+os.environ.get("MONGO_URI")
+os.environ.get("DB_NAME")
 
-chroma_client = chromadb.Client(Settings(
-    chroma_db_impl="duckdb+parquet",
-    persist_directory="./assets/vectorestores/chroma" # Optional, defaults to .chromadb/ in the current directory
-))
+mongo_client = MongoClient(MONGO_URI, uuidRepresentation="standard")
 
-collection_name = "host_index"
-chroma_collection = chroma_client.get_collection(collection_name)
-vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-
+vector_store = MongoDBAtlasVectorSearch(
+    mongodb_client=mongo_client,
+    db_name=DB_NAME,
+    collection_name="host_index",
+    index_name="embedding",
+)
 
 
 
