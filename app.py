@@ -190,4 +190,4 @@ def reply(message, say):
                                 
 
 if __name__ == "__main__":
-    flask_app.run(port=3000)
+    flask_app.run(port=10000)
