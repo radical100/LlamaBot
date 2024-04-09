@@ -70,6 +70,7 @@ service_context = ServiceContext.from_defaults(
 
 
 from pymongo import MongoClient
+from llama_index.vector_stores import MongoDBAtlasVectorSearch
 
 MONGO_URI = os.environ.get("MONGO_URI")
 DB_NAME = os.environ.get("DB_NAME")
