@@ -83,6 +83,7 @@ vector_store = MongoDBAtlasVectorSearch(
     db_name=DB_NAME,
     collection_name="host_index",
     index_name="embedding",
+    id_key="_id",
 )
 
 
