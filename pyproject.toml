@@ -2,7 +2,7 @@
 name = "llamaindex-slackbot"
 version = "0.1.0"
 description = ""
-authors = ["Laurie Voss <github@seldo.com>"]
+authors = ["Pablo Espinosa <pabloespi218@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

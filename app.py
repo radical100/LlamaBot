@@ -1,6 +1,4 @@
-# read .env files
-import dotenv, os
-dotenv.load_dotenv()
+import os
 
 # Bring in deps including Slack Bolt framework
 from slack_bolt import App
@@ -191,4 +189,4 @@ def reply(message, say):
                                 
 
 if __name__ == "__main__":
-    flask_app.run(port=10000)
+    flask_app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
