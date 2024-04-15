@@ -1,14 +1,52 @@
 import os
+import httpx
 
 # Bring in deps including Slack Bolt framework
 from slack_bolt import App
 from flask import Flask, request, jsonify
 from slack_bolt.adapter.flask import SlackRequestHandler
 
-# bring in llamaindex deps and initialize index
-from llama_index import VectorStoreIndex, Document
 
-index = VectorStoreIndex([])
+# Set variables for calling team
+TEAM_SERVER_BASE_URL = os.getenv("TEAM_SERVER_BASE_URL")
+TEAM_SERVER_API_KEY = os.getenv("TEAM_SERVER_API_KEY")
+TEAM_ID = os.getenv("TEAM_ID")
+RUN_TEAM_URL = f"{TEAM_SERVER_BASE_URL}/v1/teams/{TEAM_ID}/run"
+
+
+def query_host_assistant(query: str, metadata: dict={}):
+    """
+    Sends a query to the host assistant server and returns the response.
+
+    Args:
+        query (str): The query to send to the host assistant.
+        metadata (dict, optional): Additional metadata to include with the query. Defaults to {}.
+
+    Returns:
+        dict: The response from the host assistant server.
+
+    Raises:
+        Exception: If there is an error while sending the query.
+
+    """
+    if TEAM_ID is None:
+        return {"error": "TEAM_ID is not set."}
+    if TEAM_SERVER_BASE_URL is None:
+        return {"error": "TEAM_SERVER_BASE_URL is not set."}
+    if TEAM_SERVER_API_KEY is None:
+        return {"error": "TEAM_SERVER_API_KEY is not set."}
+    
+    response = httpx.post(
+        RUN_TEAM_URL,
+        headers={"x-api-key": TEAM_SERVER_API_KEY},
+        json={"query": query, "metadata": metadata},
+    )
+    try:
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        return {"error": str(e)}
+
 
 # Initialize Bolt app with token and secret
 app = App(
@@ -48,117 +86,6 @@ def slack_challenge():
 # otherwise it listens and stores every message as future context
 
 
-
-from llama_index import VectorStoreIndex, ServiceContext
-from llama_index.retrievers import VectorIndexRetriever
-from llama_index.embeddings import HuggingFaceEmbedding, OpenAIEmbedding
-from llama_index.llms import OpenAI
-
-
-
-
-llm = OpenAI("gpt-3.5-turbo-0125")
-
-embed_model = OpenAIEmbedding(model = 'text-embedding-3-small')
-
-service_context = ServiceContext.from_defaults(
-    llm=llm,
-    embed_model=embed_model,
-)
-
-
-from pymongo import MongoClient
-from llama_index.vector_stores import MongoDBAtlasVectorSearch
-
-MONGO_URI = os.environ.get("MONGO_URI")
-DB_NAME = 'radical-dev'
-
-
-mongo_client = MongoClient(MONGO_URI, uuidRepresentation="standard")
-
-vector_store = MongoDBAtlasVectorSearch(
-    mongodb_client=mongo_client,
-    db_name=DB_NAME,
-    collection_name="host_index",
-    index_name="embedding",
-    id_key="_id",
-)
-
-
-
-index = VectorStoreIndex.from_vector_store(
-    vector_store, service_context=service_context
-)
-
-
-from llama_index.response_synthesizers import get_response_synthesizer
-from llama_index.prompts import SelectorPromptTemplate, PromptTemplate, PromptType
-from llama_index.prompts.utils import is_chat_model
-from llama_index.core.llms.types import ChatMessage, MessageRole
-from llama_index.prompts.base import ChatPromptTemplate
-
-
-TEXT_QA_PROMPT = PromptTemplate(
-    template=(
-        "Context information is below.\n"
-        "---------------------\n"
-        "{context_str}\n"
-        "---------------------\n"
-        "Given the context information and not prior knowledge, "
-        "answer the query.\n"
-        "Query: {query_str}\n"
-        "Answer: "
-    ),
-    prompt_type=PromptType.QUESTION_ANSWER,
-)
-TEXT_QA_PROMPT_TMPL_MSGS = [
-    ChatMessage(
-        content=(
-            "You are a QA assistant that provides reccomendations, examples and "
-            "instructions on how to use the codebase.\n"
-            "Always answer the query using the provided context information, "
-            "and not prior knowledge.\n"
-            "Some rules to follow:\n"
-            "1. Always include reference to a source of the information."
-            "Include numbered reference in square brackets in the answer text "
-            "and list of used references by 'file_path' in the end.\n"
-            "2. If asked for a code example, always include it in a code block ```python ... ```."
-        ),
-        role=MessageRole.SYSTEM,
-    ),
-    ChatMessage(
-        content=(
-            "Context information is below.\n"
-            "---------------------\n"
-            "{context_str}\n"
-            "---------------------\n"
-            "Given the context information and not prior knowledge, "
-            "answer the query.\n"
-            "Query: {query_str}\n"
-            "Answer: "
-        ),
-        role=MessageRole.USER,
-    ),
-]
-CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(message_templates=TEXT_QA_PROMPT_TMPL_MSGS)
-
-
-text_qa_template = SelectorPromptTemplate(
-    default_template=TEXT_QA_PROMPT,
-    conditionals=[(is_chat_model, CHAT_TEXT_QA_PROMPT)],
-)
-
-
-response_synthesizer = get_response_synthesizer(
-    service_context=service_context,
-    text_qa_template=text_qa_template,
-)
-
-
-query_engine = index.as_query_engine(response_synthesizer=response_synthesizer)
-
-
-
 @app.message()
 def reply(message, say):
     # the slack message object is a complicated nested object
@@ -183,8 +110,14 @@ def reply(message, say):
                                 if element.get('type') == 'text':
                                     query = element.get('text')
 
-                                    response = query_engine.query(query)
-                                    say(response.response)
+                                    response = query_host_assistant(query)
+                                    if "response" in response:
+                                        response_text = response["response"]
+                                    elif "error" in response:
+                                        response_text = response["error"]
+                                    else:
+                                        response_text = "An unknown error occurred. Check the logs for more information."
+                                    say(response_text)
                                     return
                                 
 
