@@ -41,6 +41,7 @@ def query_host_assistant(query: str, metadata: dict={}):
         RUN_TEAM_URL,
         headers={"x-api-key": TEAM_SERVER_API_KEY},
         json={"inputs": inputs, "metadata": metadata},
+        timeout=60,
     )
     try:
         response.raise_for_status()
