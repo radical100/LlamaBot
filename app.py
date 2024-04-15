@@ -36,10 +36,11 @@ def query_host_assistant(query: str, metadata: dict={}):
     if TEAM_SERVER_API_KEY is None:
         return {"error": "TEAM_SERVER_API_KEY is not set."}
     
+    inputs = {"query": query}
     response = httpx.post(
         RUN_TEAM_URL,
         headers={"x-api-key": TEAM_SERVER_API_KEY},
-        json={"query": query, "metadata": metadata},
+        json={"inputs": inputs, "metadata": metadata},
     )
     try:
         response.raise_for_status()
