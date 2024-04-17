@@ -1,6 +1,19 @@
 import os
 import httpx
 
+
+
+# Load env variables from a file (local purposes only)
+
+"""
+with open("./.env") as f:
+
+    for line in f.readlines():
+        k, v = line.strip().split("=", 1)
+        os.environ[k] = v.strip("'")
+"""
+
+
 # Bring in deps including Slack Bolt framework
 from slack_bolt import App
 from flask import Flask, request, jsonify
@@ -83,9 +96,7 @@ def slack_challenge():
         print(request.json)
     return handler.handle(request)
 
-# this handles any incoming message the bot can hear
-# we want it to only respond when somebody messages it directly
-# otherwise it listens and stores every message as future context
+
 
 
 @app.message()
@@ -112,16 +123,49 @@ def reply(message, say):
                                 if element.get('type') == 'text':
                                     query = element.get('text')
 
-                                    response = query_host_assistant(query)
+
+                                    """
+                                    
+                                    # Context of the conversation.
+
+                                    replies = app.client.conversations_replies(
+                                        channel=message.get('channel'),
+                                        ts=message.get('thread_ts')
+                                    )
+
+                                    for r in replies['messages']:
+                                        pass
+                            
+
+                                    """
+
+                                    if message.get('thread_ts') is None:   # Message not in a thread
+                                        threadID = message.get('ts')
+                                    else:
+                                        threadID = message.get('thread_ts')
+
+
+                                    metadata = {'slack_thread_id': threadID}
+
+                                    response = query_host_assistant(query , metadata)
+
+
                                     if "response" in response:
                                         response_text = response["response"]
                                     elif "error" in response:
                                         response_text = response["error"]
                                     else:
                                         response_text = "An unknown error occurred. Check the logs for more information."
-                                    say(response_text)
+
+                                    app.client.chat_postMessage(
+                                    channel=message.get('channel'),
+                                    thread_ts=message.get('ts'), 
+                                    text=response_text
+                                    
+                                    )
                                     return
                                 
+
 
 if __name__ == "__main__":
     flask_app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
