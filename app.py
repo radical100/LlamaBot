@@ -20,7 +20,6 @@ from slack_bolt.adapter.flask import SlackRequestHandler
 TEAM_SERVER_BASE_URL = os.getenv("TEAM_SERVER_BASE_URL")
 TEAM_SERVER_API_KEY = os.getenv("TEAM_SERVER_API_KEY")
 TEAM_ID = os.getenv("TEAM_ID")
-RUN_TEAM_URL = f"{TEAM_SERVER_BASE_URL}/v1/teams/{TEAM_ID}/run"
 
 
 def query_host_assistant(query: str, metadata: dict={}):
@@ -47,9 +46,9 @@ def query_host_assistant(query: str, metadata: dict={}):
     
     inputs = {"query": query}
     response = httpx.post(
-        RUN_TEAM_URL,
+        f"{TEAM_SERVER_BASE_URL}/v1/teams/run",
         headers={"x-api-key": TEAM_SERVER_API_KEY},
-        json={"inputs": inputs, "metadata": metadata},
+        json={"team_id": TEAM_ID, "inputs": inputs, "metadata": metadata},
         timeout=60,
     )
     try:
